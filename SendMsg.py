@@ -1,6 +1,4 @@
 import vk_api
-import random
-import time
 
 
 def send_msg(user_id: int, message: str, attachment: str = ""):
@@ -13,24 +11,24 @@ def captcha_handler(captcha):
 
 
 def get_users(name):
-    return vk.users.search(q=name, count=1000)
+    return vk.users.search(q=name, count=1000, fields='can_write_private_message')
 
-
-names = ['Ярослав', 'Богдан', 'Алина', 'Анна', 'Андрей', 'Максим', 'Альбина', 'Эрика', 'Никита', 'Даня', 'Стас', 'Захар', 'Василий', 'Лера', 'Игорь']
 
 token = input('Введите токен: ')
+print('Введите имя, из которого нужно составить список пользователей. Рекомендую использовать каждое имя по 1 разу.')
+name = input('Введите имя: ')
 
 vk_session = vk_api.VkApi(token=token, captcha_handler=captcha_handler)
 vk = vk_session.get_api()
 
 while True:
     try:
-        name = random.choice(names)
         users = get_users(name)
         for user in users["items"]:
-            msg = send_msg(user["id"], 'тест')
-            time.sleep(1)
-            print('Сообщение отправлено')
-
+            if user["can_write_private_message"] == 1:
+                msg = send_msg(user["id"], 'тест')
+                print('Сообщение отправлено')
+            else:
+                print('Лс закрытые')
     except Exception as e:
         print(repr(e))
