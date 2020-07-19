@@ -1,5 +1,6 @@
 import vk_api
-
+import time
+import random
 
 def send_msg(user_id: int, message: str, attachment: str = ""):
     return vk.messages.send(**locals(), random_id=0)
@@ -26,8 +27,10 @@ while True:
         users = get_users(name)
         for user in users["items"]:
             if user["can_write_private_message"] == 1:
+                time_to_sleep = random.uniform(0.100, 0.250)
                 msg = send_msg(user["id"], 'тест')
                 print('Сообщение отправлено')
+                time.sleep(0.1)
             else:
                 print('Лс закрытые')
     except Exception as e:
