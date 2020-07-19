@@ -30,7 +30,7 @@ while True:
                 time_to_sleep = random.uniform(0.100, 0.250)
                 msg = send_msg(user["id"], 'тест')
                 print('Сообщение отправлено')
-                time.sleep(0.1)
+                time.sleep(time_to_sleep)
             else:
                 print('Лс закрытые')
     except Exception as e:
