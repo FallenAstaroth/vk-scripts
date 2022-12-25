@@ -9,7 +9,7 @@
 // @grant        GM.xmlHttpRequest
 // @run-at       document-end
 // @require      https://code.jquery.com/jquery-3.6.0.min.js
-// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/vk-scripts/VoiceStealer/voice.stealer.js
+// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/vk-scripts/master/VoiceStealer/voice.stealer.js
 // ==/UserScript==
 
 (async function() {
@@ -105,7 +105,7 @@
             height: 100%;
             max-height: 400px;
             margin-top: 20px;
-            padding: 5px 10px;
+            padding: 5px 0;
             background: var(--color-back-grey);
             border: 1px solid var(--color-border);
         }
@@ -128,7 +128,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 0;
+            padding: 5px 10px;
         }
         .voice-popup .items .item p {
             width: 100%;
