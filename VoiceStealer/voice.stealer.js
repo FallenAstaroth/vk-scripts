@@ -212,7 +212,22 @@
                 </div>
             </div>
         `);
-        $(".im_chat-input--buttons").prepend('<div class="im-chat-input--attach voice-stealer"><label onmouseover="showTooltip(this, { text: \'Отправить сохранённое ГС\', black: true, shift: [4, 5] });" class="im-chat-input--attach-label"> <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <g id="music_outline_20__Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="music_outline_20__Icons-20/music_outline_20"> <g id="music_outline_20__music_outline_20"> <path d="M0 0h20v20H0z"></path> <path d="M14.73 2.05a2.28 2.28 0 0 1 2.75 2.23v7.99c0 3.57-3.5 5.4-5.39 3.51-1.9-1.9-.06-5.38 3.52-5.38h.37V6.76L8 8.43v5.82c0 3.5-3.35 5.34-5.27 3.62l-.11-.1c-1.9-1.9-.06-5.4 3.51-5.4h.37V6.24c0-.64.05-1 .19-1.36l.05-.13c.17-.38.43-.7.76-.93.36-.26.7-.4 1.41-.54ZM6.5 13.88h-.37c-2.32 0-3.34 1.94-2.45 2.82.88.89 2.82-.13 2.82-2.45v-.37Zm9.48-1.98h-.37c-2.32 0-3.34 1.94-2.46 2.82.89.89 2.83-.13 2.83-2.45v-.37Zm-.02-7.78a.78.78 0 0 0-.92-.6L9.06 4.77c-.4.09-.54.15-.68.25a.8.8 0 0 0-.27.33c-.08.18-.1.35-.1.88v.67l7.97-1.67V4.2Z" id="music_outline_20__Icon-Color" fill="currentColor" fill-rule="nonzero"></path> </g> </g> </g> </svg> </label></div>');
+        $(".im_chat-input--buttons").prepend(`
+            <div class="im-chat-input--attach voice-stealer">
+                <label onmouseover="showTooltip(this, { text: 'Отправить сохранённое ГС', black: true, shift: [4, 5] });" class="im-chat-input--attach-label">
+                    <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <g id="music_outline_20__Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <g id="music_outline_20__Icons-20/music_outline_20">
+                                <g id="music_outline_20__music_outline_20">
+                                    <path d="M0 0h20v20H0z"></path>
+                                    <path d="M14.73 2.05a2.28 2.28 0 0 1 2.75 2.23v7.99c0 3.57-3.5 5.4-5.39 3.51-1.9-1.9-.06-5.38 3.52-5.38h.37V6.76L8 8.43v5.82c0 3.5-3.35 5.34-5.27 3.62l-.11-.1c-1.9-1.9-.06-5.4 3.51-5.4h.37V6.24c0-.64.05-1 .19-1.36l.05-.13c.17-.38.43-.7.76-.93.36-.26.7-.4 1.41-.54ZM6.5 13.88h-.37c-2.32 0-3.34 1.94-2.45 2.82.88.89 2.82-.13 2.82-2.45v-.37Zm9.48-1.98h-.37c-2.32 0-3.34 1.94-2.46 2.82.89.89 2.83-.13 2.83-2.45v-.37Zm-.02-7.78a.78.78 0 0 0-.92-.6L9.06 4.77c-.4.09-.54.15-.68.25a.8.8 0 0 0-.27.33c-.08.18-.1.35-.1.88v.67l7.97-1.67V4.2Z" id="music_outline_20__Icon-Color" fill="currentColor" fill-rule="nonzero"></path>
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </label>
+            </div>
+        `);
     }
 
     function insertSaveButtonOnLoad() {
@@ -371,15 +386,19 @@
             message_ids: $(object).attr("data-message-id")
         })).items[0].attachments[0].audio_message;
 
-        let docId = await callApi("docs.add", {
-            owner_id: message.owner_id,
-            doc_id: message.id,
-            access_key: message.access_key
-        });
+        let attachment;
+        if (message.owner_id === myId) {
+            attachment = `doc${message.owner_id}_${message.id}`;
+        } else {
+            let docId = await callApi("docs.add", {
+                owner_id: message.owner_id,
+                doc_id: message.id,
+                access_key: message.access_key
+            });
+            attachment = `doc${myId}_${docId}`;
+        }
 
         let audio = $(object).parent().find("input").val();
-        let attachment = `doc${myId}_${docId}`;
-
         let record = await addAudio({
             audio: audio,
             attachment: attachment
