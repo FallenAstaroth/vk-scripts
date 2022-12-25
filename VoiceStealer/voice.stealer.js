@@ -9,7 +9,7 @@
 // @grant        GM.xmlHttpRequest
 // @run-at       document-end
 // @require      https://code.jquery.com/jquery-3.6.0.min.js
-// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/vk-scripts/example.js
+// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/vk-scripts/VoiceStealer/voice.stealer.js
 // ==/UserScript==
 
 (async function() {
