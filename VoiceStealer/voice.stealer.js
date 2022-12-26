@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Voice stealer
 // @namespace    https://vk.com/
-// @version      1.0
+// @version      1.1
 // @description  Добавляет возможность сохоанения чужих ГС и отправки их от своего имени.
 // @author       FallenAstaroth
 // @match        https://vk.com/im*
@@ -254,12 +254,16 @@
     }
 
     async function insertAudioList() {
-        let elements = "";
-        let audios = await getAudios();
-        audios.forEach((element) => {
-            elements += formatAudio(element.id, element.audio, element.attachment);
-        });
-        $(".voice-messages-list .items").append(elements);
+        let audios = await dbGetAudios();
+        if (audios.length > 0) {
+            let elements = "";
+            audios.forEach((element) => {
+                elements += formatAudio(element.id, element.audio, element.attachment);
+            });
+            $(".voice-messages-list .items").append(elements);
+        } else {
+            $(".voice-messages-list .items").append(formatError("Вы еще не сохраняли ГС"));
+        }
     }
 
     function formatAudio(record, title, attachment) {
@@ -282,6 +286,14 @@
         `;
     }
 
+    function formatError(text) {
+        return `
+            <div class="error">
+                <p>${text}</p>
+            </div>
+        `;
+    }
+
     async function initDb() {
         return new Promise((resolve, reject) => {
             let request = indexedDB.open("audios", 1);
@@ -300,7 +312,7 @@
         });
     }
 
-    async function getAudios() {
+    async function dbGetAudios() {
         return new Promise((resolve, reject) => {
             let transaction = db.transaction(["audios"], "readonly");
 
@@ -314,7 +326,7 @@
         });
     }
 
-    async function getAudio(key) {
+    async function dbGetAudio(key) {
         return new Promise((resolve, reject) => {
             let transaction = db.transaction(["audios"], "readonly");
 
@@ -328,7 +340,7 @@
         });
     }
 
-    async function addAudio(audio) {
+    async function dbAddAudio(audio) {
         return new Promise((resolve, reject) => {
             let transaction = db.transaction(["audios"], "readwrite");
 
@@ -342,7 +354,7 @@
         });
     }
 
-    async function delAudio(key) {
+    async function dbDelAudio(key) {
         return new Promise((resolve, reject) => {
             let transaction = db.transaction(["audios"], "readwrite");
 
@@ -373,9 +385,8 @@
     }
 
     async function sendAudio(object) {
-        let peer_id = await getPeerId();
         await callApi("messages.send", {
-            peer_id: peer_id,
+            peer_id: (await getPeerId()),
             attachment: $(object).attr("data-audio-id"),
             random_id: 0
         });
@@ -399,20 +410,24 @@
         }
 
         let audio = $(object).parent().find("input").val();
-        let record = await addAudio({
+        let record = await dbAddAudio({
             audio: audio,
             attachment: attachment
         });
 
         $(".voice-messages-list .items").append(formatAudio(record, audio, attachment));
+        $(".voice-messages-list .items .error").remove();
+
         observeAudioSend();
         observeAudioDelete();
     }
 
     async function deleteAudio(object) {
-        let recordId = parseInt($(object).parent().find("button.delete").attr("data-record-id"));
-        await delAudio(recordId);
+        await dbDelAudio(parseInt($(object).parent().find("button.delete").attr("data-record-id")));
         $(object).parent().remove();
+        if ($(".voice-messages-list .items .item").length <= 0) {
+            $(".voice-messages-list .items").append(formatError("Нет сохраенённых ГС"));
+        }
     }
 
     async function getMyId() {
@@ -437,7 +452,7 @@
         });
     }
 
-    function observeClose() {
+    function observeCloseButton() {
         $(".voice-popup .close").on("click", function() {
             $(this).parent().parent().fadeToggle(150);
         });
@@ -473,7 +488,7 @@
         insertSaveButtonOnUpdate();
         observeSendButton();
         observeSaveButton();
-        observeClose();
+        observeCloseButton();
         observeAudioSend();
         observeAudioSave();
         observeAudioDelete();
