@@ -2,7 +2,7 @@
 // @name         Voice stealer
 // @namespace    https://vk.com/
 // @version      1.1
-// @description  Добавляет возможность сохоанения чужих ГС и отправки их от своего имени.
+// @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
 // @match        https://vk.com/im*
 // @icon         https://img.icons8.com/color/512/vk-circled.png
@@ -13,7 +13,7 @@
 // ==/UserScript==
 
 (async function() {
-    'use strict';
+    "use strict";
 
     const db = await initDb();
     const myId = await getMyId();
@@ -255,11 +255,14 @@
 
     async function insertAudioList() {
         let audios = await dbGetAudios();
+
         if (audios.length > 0) {
             let elements = "";
+
             audios.forEach((element) => {
                 elements += formatAudio(element.id, element.audio, element.attachment);
             });
+
             $(".voice-messages-list .items").append(elements);
         } else {
             $(".voice-messages-list .items").append(formatError("Вы еще не сохраняли ГС"));
@@ -301,11 +304,13 @@
             request.onerror = event => {
                 console.error(event);
             }
+
             request.onupgradeneeded = event => {
                 let db = event.target.result;
                 let objectStore = db.createObjectStore("audios", { keyPath: "id", autoIncrement: true });
                 objectStore.createIndex("audio", "audio", { unique: false });
             };
+
             request.onsuccess = event => {
                 resolve(event.target.result);
             };
@@ -319,7 +324,9 @@
             transaction.onerror = event => {
                 reject(event);
             };
+
             let store = transaction.objectStore("audios");
+
             store.getAll().onsuccess = event => {
                 resolve(event.target.result);
             };
@@ -333,7 +340,9 @@
             transaction.onerror = event => {
                 reject(event);
             };
+
             let store = transaction.objectStore("audios");
+
             store.get(key).onsuccess = event => {
                 resolve(event.target.result);
             };
@@ -347,7 +356,9 @@
             transaction.onerror = event => {
                 reject(event);
             };
+
             let store = transaction.objectStore("audios");
+
             store.put(audio).onsuccess = event => {
                 resolve(event.target.result);
             };
@@ -361,9 +372,11 @@
             transaction.oncomplete = event => {
                 resolve();
             };
+
             transaction.onerror = event => {
                 reject(event);
             };
+
             let store = transaction.objectStore("audios");
             store.delete(key);
         });
@@ -375,6 +388,7 @@
 
     async function getPeerId() {
         let link = $(".im-page--aside-photo ._im_header_link").attr("href");
+
         if (link.includes("sel=")) {
             return 2000000000 + parseInt(link.split("=c")[1]);
         } else {
@@ -393,11 +407,12 @@
     }
 
     async function saveAudio(object) {
-        let message = (await callApi("messages.getById", {
-            message_ids: $(object).attr("data-message-id")
+        let attachment;
+        let audio = $(object).parent().find("input").val();
+        let message = (
+            await callApi("messages.getById", {message_ids: $(object).attr("data-message-id")
         })).items[0].attachments[0].audio_message;
 
-        let attachment;
         if (message.owner_id === myId) {
             attachment = `doc${message.owner_id}_${message.id}`;
         } else {
@@ -409,7 +424,6 @@
             attachment = `doc${myId}_${docId}`;
         }
 
-        let audio = $(object).parent().find("input").val();
         let record = await dbAddAudio({
             audio: audio,
             attachment: attachment
@@ -425,6 +439,7 @@
     async function deleteAudio(object) {
         await dbDelAudio(parseInt($(object).parent().find("button.delete").attr("data-record-id")));
         $(object).parent().remove();
+
         if ($(".voice-messages-list .items .item").length <= 0) {
             $(".voice-messages-list .items").append(formatError("Нет сохраенённых ГС"));
         }
