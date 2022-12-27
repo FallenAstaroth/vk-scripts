@@ -39,10 +39,10 @@
 
 ## Использование
 1. Кнопка вызова меню с сохраненными голосовыми:
-<img src="docs/1.png" width="300">
+<img src="docs/1.png" width="200">
 2. Меню с сохраненными голосовыми:
 <img src="docs/2.png" width="300">
 3. Кнопка сохранения голосового:
-<img src="docs/3.png" width="300">
+<img src="docs/3.png" width="400">
 4. Окно сохранения голосового:
 <img src="docs/4.png" width="300">
