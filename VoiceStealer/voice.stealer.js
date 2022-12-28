@@ -456,9 +456,7 @@
     }
 
     function observeSaveButton() {
-        let selector = ".im_msg_audiomsg .voice-stealer-save-audio";
-        $(selector).unbind("click");
-        $(selector).on("click", function() {
+        $(".im_msg_audiomsg .voice-stealer-save-audio").unbind("click").on("click", function() {
             event.preventDefault();
             event.stopPropagation();
             $(".voice-messages-save button.save").attr("data-message-id", $(this).parent().parent().parent().parent().parent().attr("data-msgid"));
@@ -474,9 +472,7 @@
     }
 
     function observeAudioSend() {
-        let selector = ".voice-messages-list .item button.send";
-        $(selector).unbind("click");
-        $(selector).on("click", function() {
+        $(".voice-messages-list .item button.send").unbind("click").on("click", function() {
             sendAudio(this);
         });
     }
@@ -489,9 +485,7 @@
     }
 
     function observeAudioDelete() {
-        let selector = ".voice-messages-list .item button.delete";
-        $(selector).unbind("click");
-        $(selector).on("click", function() {
+        $(".voice-messages-list .item button.delete").unbind("click").on("click", function() {
             deleteAudio(this);
         });
     }
