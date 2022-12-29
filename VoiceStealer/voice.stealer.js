@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Voice stealer
 // @namespace    https://vk.com/
-// @version      1.1
+// @version      1.2
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
-// @match        https://vk.com/im*
+// @match        https://vk.com/*
 // @icon         https://img.icons8.com/color/512/vk-circled.png
 // @grant        GM.xmlHttpRequest
 // @run-at       document-end
@@ -26,6 +26,7 @@
             --color-hover-grey: #828282;
             --color-scrollbar: #888;
             --color-hover-scrollbar: #555;
+            --color-border-green: #6abd71;
             --transition-time: .3s;
         }
         .voice-popup {
@@ -103,21 +104,25 @@
         .voice-popup .items {
             overflow-x: auto;
             height: 100%;
-            max-height: 400px;
+            max-height: 300px;
             margin-top: 20px;
             padding: 5px 0;
             background: var(--color-back-grey);
             border: 1px solid var(--color-border);
         }
+        .voice-popup .tooltips::-webkit-scrollbar,
         .voice-popup .items::-webkit-scrollbar {
             width: 5px;
         }
+        .voice-popup .tooltips::-webkit-scrollbar-track,
         .voice-popup .items::-webkit-scrollbar-track {
             background: transparent;
         }
+        .voice-popup .tooltips::-webkit-scrollbar-thumb,
         .voice-popup .items::-webkit-scrollbar-thumb {
             background: var(--color-scrollbar);
         }
+        .voice-popup .tooltips::-webkit-scrollbar-thumb:hover,
         .voice-popup .items::-webkit-scrollbar-thumb:hover {
             background: ver(--color-hover-scrollbar);
         }
@@ -129,6 +134,10 @@
             justify-content: space-between;
             align-items: center;
             padding: 5px 10px;
+            transition: var(--transition-time);
+        }
+        .voice-popup .items .item.searched {
+            border: 1px solid var(--color-border-green);
         }
         .voice-popup .items .item p {
             width: 100%;
@@ -147,6 +156,7 @@
             display: flex;
             justify-content: space-between;
         }
+        .voice-popup .search input,
         .voice-popup .form input {
             width: 100%;
             background: transparent;
@@ -164,6 +174,23 @@
         .voice-popup .form button:hover {
             background-color: var(--color-hover-grey);
         }
+        .voice-popup .search .tooltips {
+            position: absolute;
+            overflow-x: auto;
+            max-height: 120px;
+            top: 45px;
+            left: 0;
+            display: none;
+            padding: 10px 0;
+            background: var(--color-back-grey);
+            border: 1px solid var(--color-border);
+            border-radius: 5px;
+        }
+        .voice-popup .search .tooltips .tooltip {
+            padding: 5px 12px;
+            cursor: pointer;
+        }
+        .voice-popup .search,
         .im_msg_audiomsg {
             position: relative;
         }
@@ -197,6 +224,12 @@
                     <button class="close"></button>
                     <h2>Список сохранённых ГС</h2>
                     <div class="items"></div>
+                    <div class="tools">
+                        <div class="search form">
+                            <input type="text" placeholder="Поиск">
+                            <div class="tooltips"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `);
@@ -257,16 +290,23 @@
         let audios = await dbGetAudios();
 
         if (audios.length > 0) {
-            let elements = "";
+            let elements, tooltips;
+            elements = tooltips = "";
 
             audios.forEach((element) => {
                 elements += formatAudio(element.id, element.audio, element.attachment);
+                tooltips += formatTooltip(element.id, element.audio);
             });
 
             $(".voice-messages-list .items").append(elements);
+            $(".voice-messages-list .tools .tooltips").append(tooltips);
         } else {
             $(".voice-messages-list .items").append(formatError("Вы еще не сохраняли ГС"));
         }
+    }
+
+    function formatTooltip(record, title) {
+        return `<div class="tooltip" data-record-id="${record}"><p>${title}</p></div>`;
     }
 
     function formatAudio(record, title, attachment) {
@@ -430,6 +470,7 @@
         });
 
         $(".voice-messages-list .items").append(formatAudio(record, audio, attachment));
+        $(".voice-messages-list .tools .tooltips").append(formatTooltip(record, audio));
         $(".voice-messages-list .items .error").remove();
 
         observeAudioSend();
@@ -443,6 +484,40 @@
         if ($(".voice-messages-list .items .item").length <= 0) {
             $(".voice-messages-list .items").append(formatError("Нет сохраенённых ГС"));
         }
+    }
+
+    async function showAudio(object) {
+        $(".voice-messages-list .tooltips .tooltip").hide();
+
+        if ($(object).val() === "") {
+            $(".voice-messages-list .items .item").removeClass("searched");
+            $(`.voice-messages-list .tooltips`).fadeOut(150);
+        } else {
+            let elements = $(`.voice-messages-list .tooltips .tooltip p:contains("${$(object).val()}")`);
+
+            if (elements.length <= 0) {
+                $(`.voice-messages-list .tooltips`).fadeOut(150);
+                return;
+            }
+            elements.parent().show();
+
+            $(`.voice-messages-list .tooltips`).fadeIn(150);
+        }
+    }
+
+    async function searchAudio(object) {
+        let selectorList = ".voice-messages-list .items";
+        let selectorItem = $(`.voice-messages-list .items .item`).removeClass("searched").find(`[data-record-id="${$(object).attr("data-record-id")}"]`);
+
+        if (selectorItem.length <= 0) {
+            return;
+        }
+
+        $(selectorList).stop().animate( {
+            scrollTop: selectorItem[0].offsetTop - $(selectorList)[0].offsetTop - 10
+        }, 150);
+
+        selectorItem.parent().addClass("searched");
     }
 
     async function getMyId() {
@@ -490,6 +565,18 @@
         });
     }
 
+    function observeAudioTooltips() {
+        $(".voice-messages-list .search input").unbind("input").on("input", function() {
+            showAudio(this);
+        });
+    }
+
+    function observeAudioSearch() {
+        $(".voice-messages-list .search .tooltip").unbind("click").on("click", function() {
+            searchAudio(this);
+        });
+    }
+
     async function run() {
         insertElements();
         await insertAudioList();
@@ -501,6 +588,8 @@
         observeAudioSend();
         observeAudioSave();
         observeAudioDelete();
+        observeAudioTooltips();
+        observeAudioSearch();
     }
 
     run();
