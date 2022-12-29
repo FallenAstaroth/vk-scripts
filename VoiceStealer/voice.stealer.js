@@ -479,8 +479,12 @@
     }
 
     async function deleteAudio(object) {
-        await dbDelAudio(parseInt($(object).parent().find("button.delete").attr("data-record-id")));
+        let record = $(object).parent().find("button.delete").attr("data-record-id");
+
+        await dbDelAudio(parseInt(record));
+
         $(object).parent().remove();
+        $(`.voice-messages-list .tooltips .tooltip`).remove(`[data-record-id="${record}"]`);
 
         if ($(".voice-messages-list .items .item").length <= 0) {
             $(".voice-messages-list .items").append(formatError("Нет сохраенённых ГС"));
