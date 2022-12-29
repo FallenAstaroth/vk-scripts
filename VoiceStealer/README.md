@@ -50,3 +50,5 @@
 <img src="docs/3.png" width="400">
 4. Окно сохранения голосового:
 <img src="docs/4.png" width="300">
+5. Поле поиска голосового:
+<img src="docs/5.png" width="300">
