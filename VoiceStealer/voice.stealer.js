@@ -300,7 +300,7 @@
             $(".voice-messages-list .items").append(elements);
             $(".voice-messages-list .tools .tooltips").append(tooltips);
         } else {
-            $(".voice-messages-list .items").append(formatError("Вы еще не сохраняли ГС"));
+            $(".voice-messages-list .items").append(formatError("Вы ещё не сохраняли ГС"));
         }
     }
 
@@ -372,22 +372,6 @@
         });
     }
 
-    async function dbGetAudio(key) {
-        return new Promise((resolve, reject) => {
-            let transaction = db.transaction(["audios"], "readonly");
-
-            transaction.onerror = event => {
-                reject(event);
-            };
-
-            let store = transaction.objectStore("audios");
-
-            store.get(key).onsuccess = event => {
-                resolve(event.target.result);
-            };
-        });
-    }
-
     async function dbAddAudio(audio) {
         return new Promise((resolve, reject) => {
             let transaction = db.transaction(["audios"], "readwrite");
@@ -450,7 +434,7 @@
         let audio = $(object).parent().find("input").val();
         let message = (
             await callApi("messages.getById", {message_ids: $(object).attr("data-message-id")
-            })).items[0].attachments[0].audio_message;
+        })).items[0].attachments[0].audio_message;
 
         if (message.owner_id === myId) {
             attachment = `doc${message.owner_id}_${message.id}`;
@@ -529,7 +513,7 @@
     }
 
     function observeSendButton() {
-        $(".im_chat-input--buttons .voice-stealer").on("click", function() {
+        $(".im_chat-input--buttons .voice-stealer").unbind("click").on("click", function() {
             $(".voice-messages-list").fadeToggle(150);
         });
     }
@@ -545,7 +529,7 @@
     }
 
     function observeCloseButton() {
-        $(".voice-popup .close").on("click", function() {
+        $(".voice-popup .close").unbind("click").on("click", function() {
             $(this).parent().parent().fadeToggle(150);
         });
     }
@@ -557,7 +541,7 @@
     }
 
     function observeAudioSave() {
-        $(".voice-messages-save button.save").on("click", function() {
+        $(".voice-messages-save button.save").unbind("click").on("click", function() {
             saveAudio(this);
             $(".voice-messages-save").fadeToggle(150);
         });
