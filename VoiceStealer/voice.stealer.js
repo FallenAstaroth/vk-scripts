@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Voice stealer
+// @name         Voice Stealer
 // @namespace    https://vk.com/
 // @version      1.2
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
@@ -104,9 +104,8 @@
         .voice-popup .items {
             overflow-x: auto;
             height: 100%;
-            max-height: 300px;
+            max-height: 305px;
             margin-top: 20px;
-            padding: 5px 0;
             background: var(--color-back-grey);
             border: 1px solid var(--color-border);
         }
@@ -451,7 +450,7 @@
         let audio = $(object).parent().find("input").val();
         let message = (
             await callApi("messages.getById", {message_ids: $(object).attr("data-message-id")
-        })).items[0].attachments[0].audio_message;
+            })).items[0].attachments[0].audio_message;
 
         if (message.owner_id === myId) {
             attachment = `doc${message.owner_id}_${message.id}`;
