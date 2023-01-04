@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Voice Stealer
 // @namespace    https://vk.com/
-// @version      1.2
+// @version      1.3
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
 // @match        https://vk.com/*
