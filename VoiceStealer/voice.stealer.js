@@ -281,7 +281,6 @@
                     </svg>
                 </button>
             `);
-            observeSaveButton();
         });
     }
 
@@ -430,11 +429,23 @@
     }
 
     async function saveAudio(object) {
-        let attachment;
+        let attachment, message;
+
         let audio = $(object).parent().find("input").val();
-        let message = (
-            await callApi("messages.getById", {message_ids: $(object).attr("data-message-id")
-        })).items[0].attachments[0].audio_message;
+        let peerId = $(object).attr("data-message-peer");
+        let messageId = $(object).attr("data-message-id");
+        let audioIndex = $(object).attr("data-message-index");
+
+        let data = await callApi("messages.getByConversationMessageId", {
+            peer_id: peerId,
+            conversation_message_ids: messageId
+        });
+
+        if (data.items[0].fwd_messages.length > 0) {
+            message = data.items[0].fwd_messages[audioIndex].attachments[0].audio_message;
+        } else {
+            message = data.items[0].attachments[audioIndex].audio_message;
+        }
 
         if (message.owner_id === myId) {
             attachment = `doc${message.owner_id}_${message.id}`;
@@ -455,10 +466,6 @@
         $(".voice-messages-list .items").append(formatAudio(record, audio, attachment));
         $(".voice-messages-list .tools .tooltips").append(formatTooltip(record, audio));
         $(".voice-messages-list .items .error").remove();
-
-        observeAudioSend();
-        observeAudioDelete();
-        observeAudioSearch();
     }
 
     async function deleteAudio(object) {
@@ -519,12 +526,20 @@
     }
 
     function observeSaveButton() {
-        $(".im_msg_audiomsg .voice-stealer-save-audio").unbind("click").on("click", function() {
+        $(".im-page--chat-body").unbind("click", ".im_msg_audiomsg .voice-stealer-save-audio").on("click", ".im_msg_audiomsg .voice-stealer-save-audio", function() {
             event.preventDefault();
             event.stopPropagation();
-            $(".voice-messages-save button.save").attr("data-message-id", $(this).parent().parent().parent().parent().parent().attr("data-msgid"));
+
+            let index = $(this).closest(".im-mess-stack_fwd").index();
+            index = (index === -1) ? 0 : index;
+
+            $(".voice-messages-save button.save")
+                .attr("data-message-id", $(this).closest(".im-mess:not(.im-mess_fwd)").attr("data-cmid"))
+                .attr("data-message-peer", $(this).closest(".im-mess:not(.im-mess_fwd)").attr("data-peer"))
+                .attr("data-message-index", index);
             $(".voice-messages-save input").val("");
             $(".voice-messages-save").fadeToggle(150);
+            $(".voice-messages-save input").focus();
         });
     }
 
@@ -535,7 +550,7 @@
     }
 
     function observeAudioSend() {
-        $(".voice-messages-list .item button.send").unbind("click").on("click", function() {
+        $(".voice-messages-list .items").unbind("click", ".item button.send").on("click", ".item button.send", function() {
             sendAudio(this);
         });
     }
@@ -548,7 +563,7 @@
     }
 
     function observeAudioDelete() {
-        $(".voice-messages-list .item button.delete").unbind("click").on("click", function() {
+        $(".voice-messages-list .items").unbind("click", ".item button.delete").on("click", ".item button.delete", function() {
             deleteAudio(this);
         });
     }
@@ -560,7 +575,7 @@
     }
 
     function observeAudioSearch() {
-        $(".voice-messages-list .search .tooltip").unbind("click").on("click", function() {
+        $(".voice-messages-list .search").unbind("click", ".tooltip").on("click", ".tooltip", function() {
             searchAudio(this);
         });
     }
