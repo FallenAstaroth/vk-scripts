@@ -274,6 +274,9 @@
 
     function insertSaveButtonOnUpdate() {
         $(".im-page-chat-contain").on("DOMSubtreeModified", function(event) {
+            if ($(event.target).find(".im_msg_audiomsg .voice-stealer-save-audio").length > 0) {
+                return;
+            }
             $(event.target).find(".im_msg_audiomsg").append(`
                 <button class="voice-stealer-save-audio">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
