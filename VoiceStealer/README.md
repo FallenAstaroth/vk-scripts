@@ -52,3 +52,5 @@
 <img src="docs/4.png" width="300">
 5. Поле поиска голосового:
 <img src="docs/5.png" width="300">
+5. Форма загрузки голосового с ПК:
+<img src="docs/6.png" width="300">
