@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Voice Stealer
 // @namespace    https://vk.com/
-// @version      1.3.1
+// @version      1.4.1
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
 // @match        https://vk.com/*
@@ -149,12 +149,45 @@
             width: 20px;
             height: 20px;
         }
-        .voice-popup .form {
+        .voice-popup .tools {
             margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .voice-popup .upload-audio {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .voice-popup .upload-audio .audio {
+            display: none;
+        }
+        .voice-popup .upload-audio .save,
+        .voice-popup .upload-audio .upload {
+            padding: 8px;
+            margin-left: 10px;
+            background-color: var(--color-grey);
+            display: block;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            transition: var(--transition-time);
+        }
+        .voice-popup .upload-audio .save:hover,
+        .voice-popup .upload-audio .upload:hover {
+            background-color: var(--color-hover-grey);
+        }
+        .voice-popup .upload-audio .save {
+            padding: 11px 12px;
+        }
+        .voice-popup .form {
             width: 100%;
             display: flex;
             justify-content: space-between;
+            margin-top: 10px;
         }
+        .voice-popup .upload-audio .name,
         .voice-popup .search input,
         .voice-popup .form input {
             width: 100%;
@@ -172,6 +205,9 @@
         }
         .voice-popup .form button:hover {
             background-color: var(--color-hover-grey);
+        }
+        .voice-popup .search.form {
+            margin-top: 0;
         }
         .voice-popup .search .tooltips {
             position: absolute;
@@ -228,6 +264,18 @@
                             <input type="text" placeholder="Поиск">
                             <div class="tooltips"></div>
                         </div>
+                    </div>
+                    <div class="upload-audio">
+                        <input type="text" class="name" placeholder="Название">
+                        <input class="audio" id="stealer-audio" type="file" accept=".mp3">
+                        <label for="stealer-audio" class="upload">
+                            <svg fill="none" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+                                <g fill="currentColor">
+                                    <path d="M19 19a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2zm-7-2a1 1 0 0 1-1-1V5.41l-4.3 4.3a1 1 0 0 1-1.31.08l-.1-.08a1 1 0 0 1 0-1.42l6-6a1 1 0 0 1 1.42 0l6 6a1 1 0 0 1-1.42 1.42L13 5.4V16a1 1 0 0 1-1 1z"></path>
+                                </g>
+                            </svg>
+                        </label>
+                        <button class="save">Добавить</button>
                     </div>
                 </div>
             </div>
@@ -471,6 +519,48 @@
         $(".voice-messages-list .items .error").remove();
     }
 
+    async function uploadAudio() {
+        try {
+            let formData = new FormData();
+
+            $(".voice-popup .upload-audio .save").prop("disabled", true);
+            $(".voice-popup .upload-audio .save").html("Загрузка...");
+            formData.append("file", document.getElementById("stealer-audio").files[0]);
+
+            let url = (await callApi("docs.getUploadServer", {
+                type: "audio_message"
+            })).upload_url;
+
+            let file = await fetch(url, {
+                method: "POST",
+                body: formData
+            });
+
+            file = JSON.parse(await file.text()).file;
+
+            let result = (await callApi("docs.save", {
+                file: file
+            })).audio_message;
+
+            let audio = $(".voice-popup .upload-audio .name").val();
+            let attachment = `doc${result.owner_id}_${result.id}`;
+
+            let record = await dbAddAudio({
+                audio: audio,
+                attachment: attachment
+            });
+
+            $(".voice-messages-list .items").append(formatAudio(record, audio, attachment));
+            $(".voice-messages-list .tools .tooltips").append(formatTooltip(record, audio));
+            $(".voice-messages-list .items .error").remove();
+        } catch {
+            console.log("Ошибка при загрузке аудио");
+        } finally {
+            $(".voice-popup .upload-audio .save").prop("disabled", false);
+            $(".voice-popup .upload-audio .save").html("Добавить");
+        }
+    }
+
     async function deleteAudio(object) {
         let record = $(object).parent().find("button.delete").attr("data-record-id");
 
@@ -583,6 +673,12 @@
         });
     }
 
+    function observeAudioUpload() {
+        $(".voice-popup .upload-audio .save").unbind("click").on("click", function() {
+            uploadAudio();
+        });
+    }
+
     async function run() {
         insertElements();
         await insertAudioList();
@@ -596,6 +692,7 @@
         observeAudioDelete();
         observeAudioTooltips();
         observeAudioSearch();
+        observeAudioUpload();
     }
 
     run();
