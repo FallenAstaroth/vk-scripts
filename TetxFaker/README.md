@@ -12,10 +12,10 @@
 Для работы скрипта нужно установить расширение [Tampermonkey](https://www.tampermonkey.net/).
 
 ### GitHub
-1. Копируем содержимое файла [text.faker.js](https://github.com/FallenAstaroth/scammers-scripts/blob/master/VoiceStealer/voice.stealer.js).
+1. Копируем содержимое файла [text.faker.js](https://github.com/FallenAstaroth/scammers-scripts/blob/master/TetxFaker/text.faker.js).
 2. Нажимаем на иконку Tampermonkey в меню с расширениями.
 3. Нажимаем `Create a new script`.
-4. Вставляем код из файла [text.faker.js](https://github.com/FallenAstaroth/scammers-scripts/blob/master/VoiceStealer/voice.stealer.js).
+4. Вставляем код из файла [text.faker.js](https://github.com/FallenAstaroth/scammers-scripts/blob/master/TetxFaker/text.faker.js).
 
 ### GreasyFork
 1. Открываем [страницу со скриптом](https://greasyfork.org/ru/scripts/461584-text-faker).
