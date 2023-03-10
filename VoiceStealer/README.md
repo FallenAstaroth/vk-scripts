@@ -30,10 +30,10 @@
 Для работы скрипта нужно установить расширение [Tampermonkey](https://www.tampermonkey.net/).
 
 ### GitHub
-1. Копируем содержимое файла [voice.stealer.js](https://github.com/FallenAstaroth/vk-scripts/blob/master/VoiceStealer/voice.stealer.js).
+1. Копируем содержимое файла [voice.stealer.js](https://github.com/FallenAstaroth/scammers-scripts/blob/master/VoiceStealer/voice.stealer.js).
 2. Нажимаем на иконку Tampermonkey в меню с расширениями.
 3. Нажимаем `Create a new script`.
-4. Вставляем код из файла [voice.stealer.js](https://github.com/FallenAstaroth/vk-scripts/blob/master/VoiceStealer/voice.stealer.js).
+4. Вставляем код из файла [voice.stealer.js](https://github.com/FallenAstaroth/scammers-scripts/blob/master/VoiceStealer/voice.stealer.js).
 5. Сохраняем и перезагружаем страницу с VK.
 
 ### GreasyFork
