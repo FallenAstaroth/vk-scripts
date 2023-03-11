@@ -8,6 +8,7 @@
 // @icon         https://img.icons8.com/color/512/vk-circled.png
 // @grant        none
 // @run-at       document-start
+// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/scammers-scripts/master/TetxFaker/text.faker.js
 // ==/UserScript==
 
 (function() {
