@@ -14,10 +14,12 @@
 (function() {
     "use strict";
 
-    const elements = [{
-        selector: "YOUR_SELECTOR",
-        text: "YOUR_TEXT"
-    }]
+    const elements = [
+        {
+            selector: "YOUR_SELECTOR",
+            text: "YOUR_TEXT"
+        }
+    ]
 
     elements.forEach((element) => {
         replaceTextOnInsertion(element.selector, element.text);
