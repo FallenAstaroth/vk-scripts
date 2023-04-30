@@ -14,18 +14,14 @@
 (function() {
     "use strict";
 
-    const elements = [
-        {
-            selector: "YOUR_SELECTOR",
-            text: "YOUR_TEXT"
-        }
-    ]
+    const elements = [{
+        selector: "YOUR_SELECTOR",
+        text: "YOUR_TEXT"
+    }]
 
-    window.onload = function() {
-        elements.forEach((element) => {
-            replaceTextOnInsertion(element.selector, element.text);
-        })
-    }
+    elements.forEach((element) => {
+        replaceTextOnInsertion(element.selector, element.text);
+    })
 
     function replaceTextOnInsertion(selector, newText) {
         const observer = new MutationObserver((mutationsList, observer) => {
@@ -42,6 +38,9 @@
             }
         });
 
-        observer.observe(document.documentElement, { childList: true, subtree: true });
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
     }
 })();
