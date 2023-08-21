@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Voice Stealer
-// @namespace    https://github.com/FallenAstaroth/
+// @namespace    https://vk.com/
 // @version      1.4.1
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
@@ -9,7 +9,7 @@
 // @grant        GM.xmlHttpRequest
 // @run-at       document-end
 // @require      https://code.jquery.com/jquery-3.6.0.min.js
-// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/scammers-scripts/master/VoiceStealer/voice.stealer.js
+// @updateURL    https://raw.githubusercontent.com/FallenAstaroth/vk-scripts/master/VoiceStealer/voice.stealer.js
 // ==/UserScript==
 
 (async function() {
@@ -479,13 +479,8 @@
         });
     }
 
-    async function saveAudio(object) {
+    async function saveAudio(peerId, messageId, audioIndex) {
         let attachment, message;
-
-        let audio = $(object).parent().find("input").val();
-        let peerId = $(object).attr("data-message-peer");
-        let messageId = $(object).attr("data-message-id");
-        let audioIndex = $(object).attr("data-message-index");
 
         let data = await callApi("messages.getByConversationMessageId", {
             peer_id: peerId,
@@ -501,13 +496,47 @@
         if (message.owner_id === myId) {
             attachment = `doc${message.owner_id}_${message.id}`;
         } else {
-            let docId = await callApi("docs.add", {
-                owner_id: message.owner_id,
-                doc_id: message.id,
-                access_key: message.access_key
+            let formData = new FormData();
+
+            let data = await fetch(message.link_mp3, {
+                method: "GET"
             });
-            attachment = `doc${myId}_${docId}`;
+
+            let blob = await data.blob();
+            formData.append("file", blob);
+
+            attachment = await uploadAudio(formData);
         }
+
+        return attachment;
+    }
+
+    async function uploadAudio(formData) {
+        let url = (await callApi("docs.getUploadServer", {
+            type: "audio_message"
+        })).upload_url;
+
+        let file = await fetch(url, {
+            method: "POST",
+            body: formData
+        });
+
+        file = JSON.parse(await file.text()).file;
+
+        let result = (await callApi("docs.save", {
+            file: file
+        })).audio_message;
+
+        return `doc${result.owner_id}_${result.id}`;
+    }
+
+    async function addAudioFromSave(object) {
+        let audio = $(object).parent().find("input").val();
+        let peerId = $(object).attr("data-message-peer");
+        let messageId = $(object).attr("data-message-id");
+        let audioIndex = $(object).attr("data-message-index");
+
+        let attachment = await saveAudio(peerId, messageId, audioIndex);
 
         let record = await dbAddAudio({
             audio: audio,
@@ -519,7 +548,7 @@
         $(".voice-messages-list .items .error").remove();
     }
 
-    async function uploadAudio() {
+    async function addAudioFromUpload() {
         try {
             let formData = new FormData();
 
@@ -527,23 +556,8 @@
             $(".voice-popup .upload-audio .save").html("Загрузка...");
             formData.append("file", document.getElementById("stealer-audio").files[0]);
 
-            let url = (await callApi("docs.getUploadServer", {
-                type: "audio_message"
-            })).upload_url;
-
-            let file = await fetch(url, {
-                method: "POST",
-                body: formData
-            });
-
-            file = JSON.parse(await file.text()).file;
-
-            let result = (await callApi("docs.save", {
-                file: file
-            })).audio_message;
-
             let audio = $(".voice-popup .upload-audio .name").val();
-            let attachment = `doc${result.owner_id}_${result.id}`;
+            let attachment = await uploadAudio(formData);
 
             let record = await dbAddAudio({
                 audio: audio,
@@ -650,7 +664,7 @@
 
     function observeAudioSave() {
         $(".voice-messages-save button.save").unbind("click").on("click", function() {
-            saveAudio(this);
+            addAudioFromSave(this);
             $(".voice-messages-save").fadeToggle(150);
         });
     }
@@ -675,7 +689,7 @@
 
     function observeAudioUpload() {
         $(".voice-popup .upload-audio .save").unbind("click").on("click", function() {
-            uploadAudio();
+            addAudioFromUpload();
         });
     }
 
