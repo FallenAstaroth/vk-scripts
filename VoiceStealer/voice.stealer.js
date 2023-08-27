@@ -17,6 +17,7 @@
 
     const db = await initDb();
     const myId = await getMyId();
+    let replyMessageId = null;
 
     insertCss(`
         :root {
@@ -472,11 +473,24 @@
     }
 
     async function sendAudio(object) {
-        await callApi("messages.send", {
+        let data = {
             peer_id: (await getPeerId()),
             attachment: $(object).attr("data-audio-id"),
             random_id: 0
-        });
+        }
+
+        if (replyMessageId) {
+            data.reply_to = replyMessageId;
+        }
+
+        await callApi("messages.send", data);
+
+        if (replyMessageId) {
+            $(".im-replied-container--remove").click();
+            $(".voice-messages-list").fadeToggle(150);
+        }
+
+        replyMessageId = null;
     }
 
     async function saveAudio(peerId, messageId, audioIndex) {
@@ -626,6 +640,10 @@
         return (await callApi("users.get", {}))[0].id;
     }
 
+    async function replyMessage(message) {
+        replyMessageId = $(message).closest(".im-mess").attr("data-msgid");
+    }
+
     function observeSendButton() {
         $(".im_chat-input--buttons .voice-stealer").unbind("click").on("click", function() {
             $(".voice-messages-list").fadeToggle(150);
@@ -693,6 +711,12 @@
         });
     }
 
+    function observeMessageReply() {
+        $(".im-page--chat-body").unbind("click", ".im-mess--reply").on("click", ".im-mess--reply", function() {
+            replyMessage(this);
+        });
+    }
+
     async function run() {
         insertElements();
         await insertAudioList();
@@ -707,6 +731,7 @@
         observeAudioTooltips();
         observeAudioSearch();
         observeAudioUpload();
+        observeMessageReply();
     }
 
     run();
