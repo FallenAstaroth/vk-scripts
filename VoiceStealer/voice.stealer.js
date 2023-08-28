@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Voice Stealer
 // @namespace    https://vk.com/
-// @version      1.5.0
+// @version      1.5.1
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
 // @match        https://vk.com/*
@@ -484,10 +484,10 @@
         }
 
         await callApi("messages.send", data);
+        $(".voice-messages-list").fadeToggle(150);
 
         if (replyMessageId) {
             $(".im-replied-container--remove").click();
-            $(".voice-messages-list").fadeToggle(150);
         }
 
         replyMessageId = null;
