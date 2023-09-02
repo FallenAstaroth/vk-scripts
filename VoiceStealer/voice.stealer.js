@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Voice Stealer
 // @namespace    https://vk.com/
-// @version      1.5.1
+// @version      1.6.0
 // @description  Добавляет возможность сохранения чужих голосовых сообщений и отправки их от своего имени.
 // @author       FallenAstaroth
 // @match        https://vk.com/*
@@ -175,6 +175,12 @@
             display: block;
             transition: var(--transition-time);
         }
+        .voice-popup .upload-audio.multi-upload .upload {
+            margin-left: 0;
+        }
+        .voice-popup .upload-audio.multi-upload .save {
+            width: 100%;
+        }
         .voice-popup .upload-audio .save:hover,
         .voice-popup .upload-audio .upload:hover {
             background-color: var(--color-hover-grey);
@@ -266,7 +272,7 @@
                             <div class="tooltips"></div>
                         </div>
                     </div>
-                    <div class="upload-audio">
+                    <div class="upload-audio single-upload">
                         <input type="text" class="name" placeholder="Название">
                         <input class="audio" id="stealer-audio" type="file" accept=".mp3">
                         <label for="stealer-audio" class="upload">
@@ -277,6 +283,17 @@
                             </svg>
                         </label>
                         <button class="save">Добавить</button>
+                    </div>
+                    <div class="upload-audio multi-upload">
+                        <input class="audio" id="stealer-audios" type="file" accept=".mp3" multiple>
+                        <label for="stealer-audios" class="upload">
+                            <svg fill="none" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+                                <g fill="currentColor">
+                                    <path d="M19 19a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2zm-7-2a1 1 0 0 1-1-1V5.41l-4.3 4.3a1 1 0 0 1-1.31.08l-.1-.08a1 1 0 0 1 0-1.42l6-6a1 1 0 0 1 1.42 0l6 6a1 1 0 0 1-1.42 1.42L13 5.4V16a1 1 0 0 1-1 1z"></path>
+                                </g>
+                            </svg>
+                        </label>
+                        <button class="save">Добавить все</button>
                     </div>
                 </div>
             </div>
@@ -566,11 +583,11 @@
         try {
             let formData = new FormData();
 
-            $(".voice-popup .upload-audio .save").prop("disabled", true);
-            $(".voice-popup .upload-audio .save").html("Загрузка...");
+            $(".voice-popup .single-upload .save").prop("disabled", true);
+            $(".voice-popup .single-upload .save").html("Загрузка...");
             formData.append("file", document.getElementById("stealer-audio").files[0]);
 
-            let audio = $(".voice-popup .upload-audio .name").val();
+            let audio = $(".voice-popup .single-upload .name").val();
             let attachment = await uploadAudio(formData);
 
             let record = await dbAddAudio({
@@ -581,12 +598,57 @@
             $(".voice-messages-list .items").append(formatAudio(record, audio, attachment));
             $(".voice-messages-list .tools .tooltips").append(formatTooltip(record, audio));
             $(".voice-messages-list .items .error").remove();
-        } catch {
-            console.log("Ошибка при загрузке аудио");
+        } catch(error) {
+            console.error(error.message);
         } finally {
-            $(".voice-popup .upload-audio .save").prop("disabled", false);
-            $(".voice-popup .upload-audio .save").html("Добавить");
+            $(".voice-popup .single-upload .save").prop("disabled", false);
+            $(".voice-popup .single-upload .save").html("Добавить");
         }
+    }
+
+    async function addAudioFromMultiUpload() {
+        try {
+            let audios = [];
+
+            $(".voice-popup .multi-upload .save").prop("disabled", true);
+            $(".voice-popup .multi-upload .save").html("Загрузка...");
+
+            Array.from(document.getElementById("stealer-audios").files).forEach(function(file) {
+                let formData = new FormData();
+                formData.append("file", file);
+                audios.push(promiseUpload(formData));
+            });
+
+            let results = await Promise.allSettled(audios);
+        } catch(error) {
+            console.error(error.message);
+        } finally {
+            $(".voice-popup .multi-upload .save").prop("disabled", false);
+            $(".voice-popup .multi-upload .save").html("Добавить все");
+        }
+    }
+
+    function promiseUpload(formData) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let attachment = await uploadAudio(formData);
+                let name = formData.get("file").name;
+                let audio = name.slice(0, -4);
+
+                let record = await dbAddAudio({
+                    audio: audio,
+                    attachment: attachment
+                });
+
+                $(".voice-messages-list .items").append(formatAudio(record, audio, attachment));
+                $(".voice-messages-list .tools .tooltips").append(formatTooltip(record, audio));
+                $(".voice-messages-list .items .error").remove();
+
+                resolve(200);
+            } catch(error) {
+                reject(500);
+            }
+        })
     }
 
     async function deleteAudio(object) {
@@ -706,8 +768,14 @@
     }
 
     function observeAudioUpload() {
-        $(".voice-popup .upload-audio .save").unbind("click").on("click", function() {
+        $(".voice-popup .single-upload .save").unbind("click").on("click", function() {
             addAudioFromUpload();
+        });
+    }
+
+    function observeAudioMultiUpload() {
+        $(".voice-popup .multi-upload .save").unbind("click").on("click", function() {
+            addAudioFromMultiUpload();
         });
     }
 
@@ -731,6 +799,7 @@
         observeAudioTooltips();
         observeAudioSearch();
         observeAudioUpload();
+        observeAudioMultiUpload();
         observeMessageReply();
     }
 
