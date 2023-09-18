@@ -1,4 +1,4 @@
-**These are old scripts with not bad code. Instructions for each script can be found in the corresponding directory.**
+**These are old scripts with bad code. Instructions for each script can be found in the corresponding directory.**
 
 ## Voice Stealer
 <div align="left">
